@@ -15,4 +15,5 @@ It calculates the distribution of the COMs according to the Thomson problem in a
 Install requirements with `pip install -r requirements.txt`.
 
 Good Luck.
+
 -V
