@@ -1,4 +1,0 @@
-box_x	73.92
-box_y	73.92
-z_upper	65
-z_lower	10
