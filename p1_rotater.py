@@ -20,6 +20,17 @@ from molweights import elements_dict
 import random
 from math import cos, sin, pi
 
+# Function to get atom type from the .pdb, which is mostly in the way of X00 (string and number)
+def get_atom_type_and_number(muddled_string):
+	string_out=""
+	number_out=""
+	for i in muddled_string:
+		try:
+			number_out+=str(int(i))
+		except ValueError:
+			string_out+=i
+	return string_out, number_out
+
 #Quaternion functions
 ##----
 def q_mult(q1, q2):
@@ -36,6 +47,7 @@ def q_conjugate(q):
 def qv_mult(q1, v1):
     q2 = (0.0,) + v1
     return q_mult(q_mult(q1, q2), q_conjugate(q1))[1:]
+
 ##----
 pth="inp_rotater"
 mols=os.listdir(pth)
@@ -43,7 +55,8 @@ mols=os.listdir(pth)
 for mol in mols:
 	##----STEP 2: Read .pdbs from inp_rotater
 	N=int(mol.split("_")[0])
-	LIG=mol.split("_")[1][:-4]
+	LIG=mol.split("_")[1][:-5]
+	CHAIN=mol.split("_")[1][-5]
 	
 	pdb=[]
 	with open(pth+"\\"+mol) as fh:
@@ -55,9 +68,9 @@ for mol in mols:
 	for line in pdb:
 		if line[-1] in elements_dict:
 			mi=elements_dict[line[-1]]
-			x+=float(line[5])*mi
-			y+=float(line[6])*mi
-			z+=float(line[7])*mi
+			x+=float(line[6])*mi
+			y+=float(line[7])*mi
+			z+=float(line[8])*mi
 			m+=mi
 	x/=m
 	y/=m
@@ -65,12 +78,12 @@ for mol in mols:
 	##---- TRANSLATE
 	for line in range(len(pdb)):
 		if pdb[line][-1] in elements_dict:
-			xt=float(pdb[line][5])-x
-			yt=float(pdb[line][6])-y
-			zt=float(pdb[line][7])-z
-			pdb[line][5]=xt
-			pdb[line][6]=yt
-			pdb[line][7]=zt
+			xt=float(pdb[line][6])-x
+			yt=float(pdb[line][7])-y
+			zt=float(pdb[line][8])-z
+			pdb[line][6]=xt
+			pdb[line][7]=yt
+			pdb[line][8]=zt
 	
 	##---STEP 4: FOR LOOP
 	for k in range(1,N+1):
@@ -83,41 +96,49 @@ for mol in mols:
 		
 		for line in range(len(pdb)):
 			if pdb[line][-1] in elements_dict:
-				xt=pdb[line][5]
-				yt=pdb[line][6]
-				zt=pdb[line][7]
+				xt=pdb[line][6]
+				yt=pdb[line][7]
+				zt=pdb[line][8]
 				##----STEP 7: Rotate molecule
 				xr,yr,zr=qv_mult(quat,(xt,yt,zt))
-				pdb[line][5]=xr
-				pdb[line][6]=yr
-				pdb[line][7]=zr
+				pdb[line][6]=xr
+				pdb[line][7]=yr
+				pdb[line][8]=zr
 				
 				##----STEP 8: INSERT LIG and N
 				pdb[line][3]=LIG
-				pdb[line][4]=str(k)
+				pdb[line][4]=CHAIN
+				pdb[line][5]=str(k)
 				
 		##----STEP 9: Save .pdb to inp_placer
-		dat=open("inp_placer/"+str(k)+"_"+LIG+".pdb","w")
+		dat=open("inp_placer/"+str(k)+"_"+LIG+CHAIN+".pdb","w")
 		dat.write("CRYST"+str(k)+"\n")
 		for line in pdb:
 			if line[-1] in elements_dict:
 				dat.write("{:6s}".format(line[0])) 		#1 ATOM
 				dat.write("{:>5s}".format(line[1])) 	#2 atom serial number
-				dat.write("{:2s}".format(" "))
-				dat.write("{:4s}".format(line[2]))		#3 atom name
+				dat.write("{:1s}".format(" ")) 			#space?
+				
+				dat.write("{:^4s}".format(line[2]))		#3 atom name
 				dat.write("{:1s}".format(" ")) 			#4 alternate location indicator
-				dat.write("{:5s}".format(line[3])) 		#5 residue name
-				dat.write("{:>2s}".format(line[4])) 		#7 residue sequence number
-				dat.write("{:4s}".format(" ")) 			#8 code for insertion of residues
-				dat.write("{:8.3f}".format(line[5]))	#9 orthogonal coordinates for X (in Angstroms)
-				dat.write("{:8.3f}".format(line[6]))	#10 orthogonal coordinates for Y (in Angstroms) 	
-				dat.write("{:8.3f}".format(line[7]))	#11 orthogonal coordinates for Z (in Angstroms)
-				dat.write("{:>6s}".format(line[8]))		#12	occupancy
-				dat.write("{:>6s}".format(line[9]))		#13 temperature factor
-				dat.write("{:>7s}".format("L"))			#7 block?
-				dat.write("{:3s}".format(" "))
-				dat.write("{:>2s}".format(line[11]))	#14 element symbol
-				dat.write("{:2s}".format(" "))			#15 charge on the atom
+				dat.write("{:3s}".format(LIG)) 		#5 residue name
+				dat.write("{:>2s}".format(CHAIN))	#6 chain identifier
+				dat.write("{:4d}".format(int(line[5]))) 		#7 residue sequence number
+				
+				dat.write("{:3s}".format(" ")) 			#space?
+				
+				dat.write("{:8.3f}".format(float(line[6])))	#9 orthogonal coordinates for X (in Angstroms)
+				dat.write("{:8.3f}".format(float(line[7])))	#10 orthogonal coordinates for Y (in Angstroms) 	
+				dat.write("{:8.3f}".format(float(line[8])))	#11 orthogonal coordinates for Z (in Angstroms)
+				dat.write("{:6.2f}".format(float(line[9])))		#12	occupancy
+				dat.write("{:6.2f}".format(float(line[10])))		#13 temperature factor
+				
+				dat.write("{:10s}".format(" ")) 			#space?
+				
+				dat.write("{:>2s}".format(get_atom_type_and_number(line[2])[0]))	#14 element symbol
+				
+				dat.write("{:2s}".format(" ")) 			#Charge on atom
+				
 				dat.write("\n")
 
 		dat.write("END")

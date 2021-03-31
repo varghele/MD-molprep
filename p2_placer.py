@@ -3,6 +3,17 @@ import random
 import numpy as np
 from p1_rotater import *
 
+# Function to get atom type from the .pdb, which is mostly in the way of X00 (string and number)
+def get_atom_type_and_number(muddled_string):
+	string_out=""
+	number_out=""
+	for i in muddled_string:
+		try:
+			number_out+=str(int(i))
+		except ValueError:
+			string_out+=i
+	return string_out, number_out
+
 #test
 
 pth_pdb="inp_placer"
@@ -20,7 +31,7 @@ N_u=len(os.listdir(upper))
 N_l=len(os.listdir(lower))
 crit=0.00001
 delta=3 #spatial variance in t-direction of COMs
-mindist=1  #minimum distance in angstrom between two atoms of different residues
+mindist=1.2  #minimum distance in angstrom between two atoms of different residues
 
 params=[]
 with open(pars) as fh:
@@ -43,7 +54,7 @@ if not os.path.exists(pth_var+"\\"+"coords"+"\\N"+str(N_l)+"_"+params[0]+"_"+par
 
 ##----MAKE COORDINATES
 angstrom_to_au=1.8897259886
-angstrom_to_au=1.2 #MD works in angstrom
+angstrom_to_au=1 #MD works in angstrom
 dims_z=[float(i)*angstrom_to_au for i in params[-2:]]
 
 pos_upper=[]
@@ -97,8 +108,9 @@ for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
 			pdb.append(line.split())
 	
 	pdb=pdb[1:-1]	#Get rid of header and end token
+	LEN=len(pdb)
 
-	temp_mol=[[float(pdb[line][5]),float(pdb[line][6]),float(pdb[line][7])] for line in range(len(pdb))]
+	temp_mol=[[float(pdb[line][6]),float(pdb[line][7]),float(pdb[line][8])] for line in range(len(pdb))]
 
 	rep=False
 	while not rep:
@@ -113,21 +125,21 @@ for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
 			xi,yi,zi=float(temp_mol[line][0]),float(temp_mol[line][1]),float(temp_mol[line][2])
 			xr,yr,zr=qv_mult(quat,(xi,yi,zi))
 
-			pdb[line][5] = xr
-			pdb[line][6] = yr
-			pdb[line][7] = zr
+			pdb[line][6] = xr
+			pdb[line][7] = yr
+			pdb[line][8] = zr
 
 
 		#--Transit and number residues
 		for line in range(len(pdb)):
-			pdb[line][4]=str(i+1)
+			pdb[line][5]=str(i+1)
 
-			xt=float(pdb[line][5])+float(pos_uppers[i][0])
-			yt=float(pdb[line][6])+float(pos_uppers[i][1])
-			zt=float(pdb[line][7])+float(pos_uppers[i][2])
-			pdb[line][5]=xt
-			pdb[line][6]=yt
-			pdb[line][7]=zt
+			xt=float(pdb[line][6])+float(pos_uppers[i][0])
+			yt=float(pdb[line][7])+float(pos_uppers[i][1])
+			zt=float(pdb[line][8])+float(pos_uppers[i][2])
+			pdb[line][6]=xt
+			pdb[line][7]=yt
+			pdb[line][8]=zt
 
 		#Check rep
 		rep=True
@@ -137,7 +149,7 @@ for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
 					rep=False
 
 	for line in range(len(pdb)):
-		xi,yi,zi=float(pdb[line][5]),float(pdb[line][6]),float(pdb[line][7])
+		xi,yi,zi=float(pdb[line][6]),float(pdb[line][7]),float(pdb[line][8])
 		all_mol_xyz.append([xi,yi,zi])
 
 	for line in range(len(pdb)):
@@ -166,7 +178,7 @@ for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
 	
 	pdb=pdb[1:-1]	#Get rid of header and end token
 
-	temp_mol = [[float(pdb[line][5]), float(pdb[line][6]), float(pdb[line][7])] for line in range(len(pdb))]
+	temp_mol = [[float(pdb[line][6]), float(pdb[line][7]), float(pdb[line][8])] for line in range(len(pdb))]
 
 	rep = False
 	while not rep:
@@ -181,20 +193,20 @@ for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
 			xi, yi, zi = float(temp_mol[line][0]), float(temp_mol[line][1]), float(temp_mol[line][2])
 			xr, yr, zr = qv_mult(quat, (xi, yi, zi))
 
-			pdb[line][5] = xr
-			pdb[line][6] = yr
-			pdb[line][7] = zr
+			pdb[line][6] = xr
+			pdb[line][7] = yr
+			pdb[line][8] = zr
 
 		# --Transit and number residues
 		for line in range(len(pdb)):
-			pdb[line][4] = str(i+j + 1)
+			pdb[line][5] = str(i+j + 1)
 
-			xt = float(pdb[line][5]) + float(pos_lowers[j][0])
-			yt = float(pdb[line][6]) + float(pos_lowers[j][1])
-			zt = float(pdb[line][7]) + float(pos_lowers[j][2])
-			pdb[line][5] = xt
-			pdb[line][6] = yt
-			pdb[line][7] = zt
+			xt = float(pdb[line][6]) + float(pos_lowers[j][0])
+			yt = float(pdb[line][7]) + float(pos_lowers[j][1])
+			zt = float(pdb[line][8]) + float(pos_lowers[j][2])
+			pdb[line][6] = xt
+			pdb[line][7] = yt
+			pdb[line][8] = zt
 
 		# Check rep
 		rep = True
@@ -204,7 +216,7 @@ for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
 					rep = False
 
 	for line in range(len(pdb)):
-		xi, yi, zi = float(pdb[line][5]), float(pdb[line][6]), float(pdb[line][7])
+		xi, yi, zi = float(pdb[line][6]), float(pdb[line][7]), float(pdb[line][8])
 		all_mol_xyz.append([xi, yi, zi])
 
 	for line in range(len(pdb)):
@@ -217,25 +229,40 @@ for line in Notorious_PDB:
 ##----WRITEOUT
 dat=open(pth_pdb+"\\BigPDB.pdb","w")
 dat.write("FakePeptide\n")
+ter=0
+sn=1
 for line in Notorious_PDB:
 	dat.write("{:6s}".format(line[0])) 		#1 ATOM
-	dat.write("{:>5s}".format(line[1])) 	#2 atom serial number
-	dat.write("{:2s}".format(" "))
-	dat.write("{:4s}".format(line[2]))		#3 atom name
+	dat.write("{:>5s}".format(str(sn))) 	#2 atom serial number
+	dat.write("{:1s}".format(" ")) 			#space?
+	
+	dat.write("{:^4s}".format(line[2]))		#3 atom name
 	dat.write("{:1s}".format(" ")) 			#4 alternate location indicator
-	dat.write("{:5s}".format(line[3])) 		#5 residue name
-	dat.write("{:>2s}".format(line[4])) 		#7 residue sequence number
-	dat.write("{:4s}".format(" ")) 			#8 code for insertion of residues
-	dat.write("{:8.3f}".format(line[5]))	#9 orthogonal coordinates for X (in Angstroms)
-	dat.write("{:8.3f}".format(line[6]))	#10 orthogonal coordinates for Y (in Angstroms) 	
-	dat.write("{:8.3f}".format(line[7]))	#11 orthogonal coordinates for Z (in Angstroms)
-	dat.write("{:>6s}".format(line[8]))		#12	occupancy
-	dat.write("{:>6s}".format(line[9]))		#13 temperature factor
-	dat.write("{:>7s}".format("L"))			#7 block?
-	dat.write("{:3s}".format(" "))
-	dat.write("{:>2s}".format(line[11]))	#14 element symbol
-	dat.write("{:2s}".format(" "))			#15 charge on the atom
+	dat.write("{:3s}".format(line[3])) 		#5 residue name
+	dat.write("{:>2s}".format(line[4]))	#6 chain identifier
+	dat.write("{:4d}".format(int(line[5]))) 		#7 residue sequence number
+	
+	dat.write("{:3s}".format(" ")) 			#space?
+	
+	dat.write("{:8.3f}".format(float(line[6])))	#9 orthogonal coordinates for X (in Angstroms)
+	dat.write("{:8.3f}".format(float(line[7])))	#10 orthogonal coordinates for Y (in Angstroms) 	
+	dat.write("{:8.3f}".format(float(line[8])))	#11 orthogonal coordinates for Z (in Angstroms)
+	dat.write("{:6.2f}".format(float(line[9])))		#12	occupancy
+	dat.write("{:6.2f}".format(float(line[10])))		#13 temperature factor
+	
+	dat.write("{:10s}".format(" ")) 			#space?
+	
+	dat.write("{:>2s}".format(get_atom_type_and_number(line[2])[0]))	#14 element symbol
+	
+	dat.write("{:2s}".format(" ")) 			#Charge on atom
+	
 	dat.write("\n")
+	
+	ter+=1
+	if ter==LEN:
+		dat.write("TER\n")
+		ter=0
+	sn+=1
 
 dat.write("END")
 dat.close()
