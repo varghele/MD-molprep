@@ -3,6 +3,8 @@ import random
 import numpy as np
 from p1_rotater import *
 
+#test
+
 pth_pdb="inp_placer"
 pth_var="var_placer"
 
