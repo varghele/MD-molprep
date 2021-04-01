@@ -1,7 +1,10 @@
 import os
 import random
 import numpy as np
-from p1_rotater import *
+from p1_rotater import qu_mult
+from p1_rotater import q_conjugate
+from p1_rotater import qv_mult
+ 
 
 # Function to get atom type from the .pdb, which is mostly in the way of X00 (string and number)
 def get_atom_type_and_number(muddled_string):
@@ -102,6 +105,7 @@ random.shuffle(pos_uppers)
 #--Read in .pdbs
 i=0
 for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
+	print("U"+str(i))
 	pdb=[]
 	with open(upper+"\\"+mol) as fh:
 		for line in fh:
@@ -140,11 +144,13 @@ for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
 			pdb[line][6]=xt
 			pdb[line][7]=yt
 			pdb[line][8]=zt
+		
+		temp_mol_rot=[[float(pdb[line][6]),float(pdb[line][7]),float(pdb[line][8])] for line in range(len(pdb))]
 
 		#Check rep
 		rep=True
 		for elm0 in all_mol_xyz:
-			for elm1 in temp_mol:
+			for elm1 in temp_mol_rot:
 				if np.linalg.norm(np.array(elm0)-np.array(elm1))<mindist:
 					rep=False
 
@@ -171,6 +177,7 @@ random.shuffle(pos_lowers)
 #--Read in .pdbs
 j=0
 for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
+	print("L"+str(j))
 	pdb=[]
 	with open(lower+"\\"+mol) as fh:
 		for line in fh:
@@ -207,11 +214,13 @@ for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
 			pdb[line][6] = xt
 			pdb[line][7] = yt
 			pdb[line][8] = zt
+		
+		temp_mol_rot=[[float(pdb[line][6]),float(pdb[line][7]),float(pdb[line][8])] for line in range(len(pdb))]
 
 		# Check rep
 		rep = True
 		for elm0 in all_mol_xyz:
-			for elm1 in temp_mol:
+			for elm1 in temp_mol_rot:
 				if np.linalg.norm(np.array(elm0) - np.array(elm1)) < mindist:
 					rep = False
 
