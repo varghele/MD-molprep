@@ -1,10 +1,7 @@
 import os
 import random
 import numpy as np
-from p1_rotater import qu_mult
-from p1_rotater import q_conjugate
-from p1_rotater import qv_mult
- 
+from math import cos, sin, pi
 
 # Function to get atom type from the .pdb, which is mostly in the way of X00 (string and number)
 def get_atom_type_and_number(muddled_string):
@@ -16,6 +13,25 @@ def get_atom_type_and_number(muddled_string):
 		except ValueError:
 			string_out+=i
 	return string_out, number_out
+
+#Quaternion functions
+##----
+def q_mult(q1, q2):
+    w1, x1, y1, z1 = q1
+    w2, x2, y2, z2 = q2
+    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
+    return w, x, y, z
+def q_conjugate(q):
+    w, x, y, z = q
+    return (w, -x, -y, -z)
+def qv_mult(q1, v1):
+    q2 = (0.0,) + v1
+    return q_mult(q_mult(q1, q2), q_conjugate(q1))[1:]
+
+##----
 
 #test
 
@@ -136,7 +152,7 @@ for mol in sorted(os.listdir(upper),key=lambda x: (x[-8:-4],len(x))):
 
 		#--Transit and number residues
 		for line in range(len(pdb)):
-			pdb[line][5]=str(i+1)
+			#pdb[line][5]=str(i+1)
 
 			xt=float(pdb[line][6])+float(pos_uppers[i][0])
 			yt=float(pdb[line][7])+float(pos_uppers[i][1])
@@ -206,7 +222,7 @@ for mol in sorted(os.listdir(lower),key=lambda x: (x[-8:-4],len(x))):
 
 		# --Transit and number residues
 		for line in range(len(pdb)):
-			pdb[line][5] = str(i+j + 1)
+			#pdb[line][5] = str(i+j + 1)
 
 			xt = float(pdb[line][6]) + float(pos_lowers[j][0])
 			yt = float(pdb[line][7]) + float(pos_lowers[j][1])
@@ -238,9 +254,17 @@ for line in Notorious_PDB:
 ##----WRITEOUT
 dat=open(pth_pdb+"\\BigPDB.pdb","w")
 dat.write("FakePeptide\n")
-ter=0
+ter=1
 sn=1
 for line in Notorious_PDB:
+	
+	#print(line[5])
+	#break
+	
+	if ter!=int(line[5]):
+		dat.write("TER\n")
+		ter=int(line[5])
+	
 	dat.write("{:6s}".format(line[0])) 		#1 ATOM
 	dat.write("{:>5s}".format(str(sn))) 	#2 atom serial number
 	dat.write("{:1s}".format(" ")) 			#space?
@@ -267,10 +291,7 @@ for line in Notorious_PDB:
 	
 	dat.write("\n")
 	
-	ter+=1
-	if ter==LEN:
-		dat.write("TER\n")
-		ter=0
+	
 	sn+=1
 
 dat.write("END")
