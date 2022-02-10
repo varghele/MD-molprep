@@ -269,13 +269,28 @@ for line in Notorious_PDB:
 	dat.write("{:>5s}".format(str(sn))) 	#2 atom serial number
 	dat.write("{:1s}".format(" ")) 			#space?
 	
-	dat.write("{:^4s}".format(line[2]))		#3 atom name
-	dat.write("{:1s}".format(" ")) 			#4 alternate location indicator
-	dat.write("{:3s}".format(line[3])) 		#5 residue name
-	dat.write("{:>2s}".format(line[4]))	#6 chain identifier
-	dat.write("{:4d}".format(int(line[5]))) 		#7 residue sequence number
+    #This is a fix to the name/number format
+	at_name, at_num=get_atom_type_and_number(line[2]) #Get names from muddled_string
+	if len(at_name)+len(at_num)>=3:
+		dat.write("{:>4s}".format(line[2]))		#3 atom name
+	elif len(at_name)==2 and len(at_num)>0:
+		dat.write("{:2s}".format(at_name))		#3 atom name
+		dat.write("{:2s}".format(at_num))		#3 atom number
+	elif len(at_name)==1 and len(at_num)>0:
+		dat.write("{:>2s}".format(at_name))		#3 atom name
+		dat.write("{:2s}".format(at_num))		#3 atom number
+	elif len(at_name)==2 and len(at_num)==0:
+		dat.write("{:4s}".format(at_name))		#3 atom name
+	elif len(at_name)==1 and len(at_num)==0:
+		dat.write("{:1s}".format(" "))
+		dat.write("{:3s}".format(at_name))		#3 atom name
 	
-	dat.write("{:3s}".format(" ")) 			#space?
+	dat.write("{:1s}".format(" ")) 			#4 alternate location indicator
+	dat.write("{:>3s}".format(line[3])) 		#5 residue name
+	dat.write("{:>2s}".format(line[4]))	#6 chain identifier
+	dat.write("{:>4d}".format(int(line[5]))) 		#7 residue sequence number
+	
+	dat.write("{:4s}".format(" ")) 			#space?
 	
 	dat.write("{:8.3f}".format(float(line[6])))	#9 orthogonal coordinates for X (in Angstroms)
 	dat.write("{:8.3f}".format(float(line[7])))	#10 orthogonal coordinates for Y (in Angstroms) 	
@@ -283,7 +298,7 @@ for line in Notorious_PDB:
 	dat.write("{:6.2f}".format(float(line[9])))		#12	occupancy
 	dat.write("{:6.2f}".format(float(line[10])))		#13 temperature factor
 	
-	dat.write("{:10s}".format(" ")) 			#space?
+	dat.write("{:4s}".format(" ")) 			#space?
 	
 	dat.write("{:>2s}".format(get_atom_type_and_number(line[2])[0]))	#14 element symbol
 	
